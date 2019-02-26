@@ -5,8 +5,9 @@ use library\QueryBuilder;
 use library\ClassAutoInitializer;
 use library\RequestManager;
 use library\SessionManager;
+use library\ViewManager;
 
-abstract class Controller
+abstract class Controller extends ViewManager
 {
     protected function loadmodel($name, $path = 'model/'){
         $path = $path.$name.'Model.php';
@@ -18,14 +19,14 @@ abstract class Controller
         return $ob;
     }
     protected function render($name, $data = null){
-        if(!is_array($data) && ($data != null)){
-            throw new Exception("Second parameter must be an array ".gettype($data)." given");
-        }
-        if(!is_file('templates/'.$name.'.html.php')) {
-            throw new Exception("No such file in templates directory!!");
+        $this->generateHeader("header");
+        $this->appendBody($name, $data);
+        $this->generateBottom("bottom");
+
+        foreach ($this->getMergedData() as $html){
+            include($html);
         }
 
-        include('templates/' . $name . '.html.php');
     }
     protected function queryBuilder (){
         $queryBuilder = new QueryBuilder();

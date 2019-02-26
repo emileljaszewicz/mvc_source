@@ -15,10 +15,6 @@ if(empty($_SESSION['userClass'])) {
 $requestManager = new \library\RequestManager();
 if(($requestManager->getGetMethodResult("task") !== null) && ($requestManager->getGetMethodResult("action") !== null)){
 
-//    $controllerClass = "\\controller\\".$requestManager->getGetMethodResult('task').'Controller';
-//    $method = $requestManager->getGetMethodResult('action');
-//    $ob = new $controllerClass();
-//    $ob->$method();
 
     $requestManager->getRequestedRoute();
 }

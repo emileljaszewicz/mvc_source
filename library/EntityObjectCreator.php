@@ -51,12 +51,4 @@ class EntityObjectCreator
     public function getJoinedArray(){
         return $this->joinedArray;
     }
-    public function getUserRankObject(){
-
-        $usersCreator = new UsersCreator($this);
-
-        $ob = $usersCreator->createOwnerRankClassObject();
-
-        return $ob;
-    }
 }
