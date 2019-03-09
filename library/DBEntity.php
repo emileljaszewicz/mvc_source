@@ -6,7 +6,6 @@ namespace library;
 
 class DBEntity
 {
-    private $metName;
     private $rowId;
     private $arrayValues;
 
@@ -19,8 +18,8 @@ class DBEntity
         $this->rowId = $rowId;
         foreach ($this->getEntityData($this->rowId)->getPdoArray() as $iterate => $obParams){
             foreach ($obParams as $entityField => $value){
-                foreach ($this->getClassProperties() as $field){
-                    if(strtolower($field[0]) == strtolower($entityField)){
+                foreach ($this->getClassProperties() as $fieldName => $methodName){
+                    if(strtolower($fieldName) == strtolower($entityField)){
                         if(!is_array($this->rowId)){
                             $this->arrayValues[$entityField][] = $value;
                         }
@@ -28,7 +27,7 @@ class DBEntity
                             $this->arrayValues[$entityField] = $value;
                         }
 
-                        $setMethod = $field[1];
+                        $setMethod = 'set'.$methodName;
                         $this->$setMethod($this->arrayValues[$entityField]);
                     }
 
@@ -45,7 +44,6 @@ class DBEntity
     }
 
     public function getEntityData($params = null){
-
         $queryBuilder = new QueryBuilder();
         $queryBuilder->createQueryForTable($this->getEntityName());
 
@@ -76,7 +74,7 @@ class DBEntity
             $propertyName = strtolower(str_replace("_", "", $classProperty->getName()));
             foreach ($classMethods as $classMethod){
                 if('set'.$propertyName == strtolower($classMethod)){
-                    $propertiesArray[] = [$classProperty->getName(), $classMethod];
+                    $propertiesArray[$classProperty->getName()] = str_replace('set', '', $classMethod);
                 }
             }
 
@@ -89,12 +87,34 @@ class DBEntity
         $ob->joinEntityCollumns($entityData);
         return $ob;
     }
-    public function getFromId(array $id){
+    public function save(){
+        $queryBuilder = $this->getQueryBuilder();
+        $queryBuilder->createQueryForTable($this->getEntityName());
 
-        return new DBEntity($id);
+        $classProperties = $this->getClassProperties();
+
+        $queryBuilder->createQueryForTable($this->getEntityName());
+
+        foreach ($classProperties as $entityField => $value){
+            $methodName = 'get'.$value;
+            if(!is_array($this->$methodName())) {
+                $queryBuilder->prepareData($entityField, $this->$methodName());
+            }
+
+        }
+        if($this->rowId === null){
+           $queryBuilder->insertData();
+        }
+        else{
+            $queryBuilder->updateData();
+            $queryBuilder->where($this->rowId);
+        }
+
+        return $queryBuilder->execQuery();
     }
-    public function aaa(){
+    private function getQueryBuilder(){
+        $queryBuilderObject = new QueryBuilder();
 
-        return $this->metName;
+        return clone $queryBuilderObject;
     }
 }

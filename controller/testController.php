@@ -9,7 +9,7 @@ use library\EntityObjectCreator;
 use library\UsersCreator;
 
 /**
- *@Privileges(grantedUser(\userranks\Owner))
+ *
  */
 class testController extends Controller
 {
@@ -48,12 +48,14 @@ echo 'dsdsd';
         echo 'qqqq';
     }
     public function some(){
-        $privileges = new Privileges(['user_rank_id' => 1]);
-        $testEntity = new Users(['user_id' => 1]);
-        $userRanks = new User_ranks();
-        $testEntity->joinEntityData($privileges->getEntityData());
 
-      var_dump($testEntity->joinEntityData($userRanks->getEntityData()));
+//        $users = new Users();
+//        $users->setName('zenon');
+//        $users->setEmail('aaww@o2.po.com');
+//        $users->setLogin('exe');
+//        $users->setPassword('wwweeeqqq');
+//        $users->setUserRankId(2);
+//        $users->save();
 
     }
 }

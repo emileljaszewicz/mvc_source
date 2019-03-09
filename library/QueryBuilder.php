@@ -43,27 +43,25 @@ class QueryBuilder
 
         return $this->query;
     }
+    public function updateData(){
+        $queryfields =  [];
+        foreach ($this->mysqlData as $field => $data){
+            $queryfields[] = "$field = ".$this->addQuotes($data);
+        }
+        $this->query = "Update $this->tableName Set ".implode(', ', $queryfields);
+        return $this->query;
+    }
     public function where(array $fieldsToCompare){
         $queryfields =  [];
 
-        foreach ($this->mysqlData as $field => $data){
-            $queryfields['fields'][] = "$field = ".$this->addQuotes($data);
-        }
         foreach($fieldsToCompare as $field => $data){
             if(is_int($field)){
                 throw new \Exception("Bad array arguments. Mysql field name must be a string !!");
             }
             $queryfields[] = "$field = ".$this->addQuotes($data);
         }
+
         $this->query .= " Where ".implode(' And ', $queryfields);
-        return $this->query;
-    }
-    public function updateSet(array $fieldsToCompare){
-        $queryfields =  [];
-        foreach ($fieldsToCompare as $field => $data){
-            $queryfields[] = "$field = ".$this->addQuotes($data);
-        }
-        $this->query = "Update $this->tableName Set ".implode(', ', $queryfields);
         return $this->query;
     }
     public function selectData($tableFields = '*'){
@@ -74,13 +72,24 @@ class QueryBuilder
         return $this->query;
     }
     public function execQuery(){
-        $q = $this->query.';';
-        $dataToSent = $this->pdo->prepare($q);
-        $dataToSent->execute();
-
-        return $dataToSent;
+        try {
+            $q = $this->query . ';';
+            $dataToSent = $this->pdo->prepare($q);
+            if(!$dataToSent->execute()){
+                throw new \Exception($dataToSent->errorInfo()[2]);
+            }
+            return $dataToSent;
+        }
+        catch (\PDOException $exception){
+            echo $exception->getMessage();
+        }
     }
+    public function getTableKeyData($keyName){
+        $this->query = "SHOW KEYS FROM {$this->tableName} WHERE Key_name = '$keyName'";
 
+
+        return $this->execQuery()->fetchAll();
+    }
     private function addQuotes($dataToInsert){
         $getdatatype = gettype($dataToInsert);
         $return = null;
