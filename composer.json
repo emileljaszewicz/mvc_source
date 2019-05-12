@@ -7,8 +7,7 @@
         }
     ],
     "require": {
-        "twbs/bootstrap": "^4.1",
-        "wenzhixin/bootstrap-table": "^1.12"
+        "rakit/validation": "^1.1"
     },
     "autoload": {
         "psr-4": {

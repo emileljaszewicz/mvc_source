@@ -5,10 +5,37 @@ use library\QueryBuilder;
 use library\ClassAutoInitializer;
 use library\RequestManager;
 use library\SessionManager;
+use library\UsersCreator;
 use library\ViewManager;
+use Rakit\Validation\Validator;
 
 abstract class Controller extends ViewManager
 {
+    protected $postData;
+    public function __construct()
+    {
+        $this->postData = $_POST;
+    }
+
+    public function getMessages($messageType){
+        $sessionManager = $this->getSessionManager();
+        $message = $sessionManager->getSessionData($messageType);
+
+        $sessionManager->remove($messageType);
+        if(($message !== null)) {
+
+            return implode(PHP_EOL, $message);
+        }
+        else{
+            return null;
+        }
+    }
+    protected function setMessage($messageType, $essageContent){
+        $errors = [];
+        $sessionManager = $this->getSessionManager();
+        $errors[$messageType][] = $essageContent;
+        $sessionManager->addSessionData($messageType, $errors[$messageType]);
+    }
     protected function loadmodel($name, $path = 'model/'){
         $path = $path.$name.'Model.php';
         $modelclassName = $name.'Model';
@@ -47,5 +74,22 @@ abstract class Controller extends ViewManager
         $requestManager = new RequestManager();
 
         return $requestManager;
+    }
+
+    protected function redirect($redirectPath){
+        $RequestManager = $this->getRequestManager();
+
+        return $RequestManager->redirectToUrl($redirectPath);
+    }
+
+    protected function getUser(){
+        $sessionManager = $this->getSessionManager();
+        $usersCreator = new UsersCreator();
+        $usersCreator->findUser(['userId' => $sessionManager->getSessionData('userId')]);
+
+        return $usersCreator;
+    }
+    protected function getValidator($customMessages = []){
+        return new Validator($customMessages);
     }
 }

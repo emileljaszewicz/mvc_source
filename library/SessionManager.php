@@ -37,7 +37,9 @@ class SessionManager
         array_reverse($_SESSION['urlRequests']);
 
     }
-
+    public function remove($sessionKey){
+        unset($_SESSION[$sessionKey]);
+    }
     public function getUrlRequests(){
         if(isset($_SESSION['urlRequests'])) {
             return $_SESSION['urlRequests'];

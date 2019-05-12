@@ -13,7 +13,9 @@ class RequestManager extends UrlManager
         $this->sessionManager = new SessionManager();
         $this->sessionManager->saveUrlRequests($this->generateUrl());
     }
-
+    public function redirectToUrl($urlPath){
+        return header("location:".$urlPath);
+    }
     public function getRequestedRoute(){
         $controller = "\\controller\\".$this->getGetMethodResult('task').'Controller';
         $controllerResponseResults = $this->annotationManager->returnAnnotationResponseData($controller, 'controllerAnnotations');
@@ -51,6 +53,8 @@ class RequestManager extends UrlManager
                             if (is_array($controllersMethodResponseResults) && (array_key_exists('controller', $controllersMethodResponseResults) && (array_key_exists('controllersMethod', $controllersMethodResponseResults)))) {
                                 $task = explode('\\controller\\',explode('Controller', $controller)[0])[1];
                                 return header('location:index.php?task=' . $task . '&action=' . $controllerMethod);
+
+                                exit();
                             } else {
 
                                 echo 'Returned method annotations can return only boolean type, necessary to redirect to route path in: ' . $controller . '::' . $controllerMethod;
@@ -74,5 +78,13 @@ class RequestManager extends UrlManager
             return $requests[$requestsCount - 1];
         }
     }
+    public function getPostData($postIndexName){
 
+        if(isset($_POST[$postIndexName])){
+            return $_POST[$postIndexName];
+        }
+        else{
+            return null;
+        }
+    }
 }

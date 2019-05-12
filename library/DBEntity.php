@@ -4,6 +4,8 @@ namespace library;
 
 
 
+use Entities\Panels;
+
 class DBEntity
 {
     private $rowId;
@@ -16,11 +18,17 @@ class DBEntity
             throw new \Exception("Value idData must be an array");
         }
         $this->rowId = $rowId;
+
         foreach ($this->getEntityData($this->rowId)->getPdoArray() as $iterate => $obParams){
+
             foreach ($obParams as $entityField => $value){
                 foreach ($this->getClassProperties() as $fieldName => $methodName){
                     if(strtolower($fieldName) == strtolower($entityField)){
                         if(!is_array($this->rowId)){
+                            $this->arrayValues[$entityField][] = $value;
+                        }
+                        else if(is_array($this->rowId) && count(array_column($this->getEntityData($this->rowId)->getPdoArray(), $entityField)) > 1){
+
                             $this->arrayValues[$entityField][] = $value;
                         }
                         else{
@@ -35,7 +43,14 @@ class DBEntity
             }
         }
     }
-    private function getEntityName(){
+    public function __call($name, $arguments)
+    {
+        if(!method_exists($this, $name)){
+            return null;
+        }
+    }
+
+    public function getEntityName(){
 
         $classNameToArray = explode('\\',get_class($this));
         $className = $classNameToArray[sizeof($classNameToArray)-1];
@@ -93,14 +108,16 @@ class DBEntity
 
         $classProperties = $this->getClassProperties();
 
-        $queryBuilder->createQueryForTable($this->getEntityName());
+        //$queryBuilder->createQueryForTable($this->getEntityName());
 
         foreach ($classProperties as $entityField => $value){
             $methodName = 'get'.$value;
-            if(!is_array($this->$methodName())) {
+            if(!is_array($this->$methodName()) && !is_object($this->$methodName())) {
                 $queryBuilder->prepareData($entityField, $this->$methodName());
             }
-
+            else if(is_object($this->$methodName())){
+                $queryBuilder->prepareData($entityField, $this->$methodName()->getPrimaryKeyValue()[0]['keyValue']);
+            }
         }
         if($this->rowId === null){
            $queryBuilder->insertData();
@@ -111,6 +128,52 @@ class DBEntity
         }
 
         return $queryBuilder->execQuery();
+    }
+    public function remove(){
+
+
+        $queryBuilder = $this->getQueryBuilder();
+        $queryBuilder->createQueryForTable($this->getEntityName());
+        $primaryKey = $queryBuilder->getTableKeyData('PRIMARY')[0]["Column_name"];
+
+        $mn = 'get'.$this->getClassProperties()[$primaryKey];
+
+        $queryBuilder->prepareData($primaryKey, $this->$mn());
+
+        $queryBuilder->removeData();
+        $queryBuilder->execQuery();
+
+        return 1;
+    }
+    public function getPrimaryKeyName(){
+        $queryBuilder = $this->getQueryBuilder();
+        $queryBuilder->createQueryForTable($this->getEntityName());
+        $primaryKey = array_column($queryBuilder->getTableKeyData('PRIMARY'), 'Column_name');
+
+        return $primaryKey;
+    }
+    public function getPrimaryKeyValue(){
+        $primaryKeysFunctionValues = [];
+
+        foreach ($this->getPrimaryKeyName() as $primaryKey) {
+            $primaryKeyFunctionName = 'get' . $this->getClassProperties()[$primaryKey];
+
+            $primaryKeysFunctionValues[] = ["keyName" => $primaryKey, "keyValue" => $this->$primaryKeyFunctionName()];
+        }
+        return $primaryKeysFunctionValues;
+    }
+    public function getCollection(){
+
+        $arrayCollection = new ArrayCollection();
+        foreach ($this->getPrimaryKeyValue() as $tableKeyData){
+            foreach ($tableKeyData['keyValue'] as $primaryKeyValue) {
+                $this->__construct([$tableKeyData['keyName'] => $primaryKeyValue]);
+
+                $arrayCollection->add(serialize($this));
+            }
+        }
+
+        return $arrayCollection;
     }
     private function getQueryBuilder(){
         $queryBuilderObject = new QueryBuilder();

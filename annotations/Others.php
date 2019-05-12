@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: E
- * Date: 18.12.2018
- * Time: 22:58
- */
-
 namespace annotations;
 
 

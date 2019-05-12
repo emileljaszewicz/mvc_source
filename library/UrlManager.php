@@ -16,9 +16,10 @@ class UrlManager
     }
 
     /**
-     * Check path to controllers method defined in url
+     * * Check path to controllers method defined in url
      * returns url path only for public method property
      * @return array
+     * @throws \ReflectionException
      */
     public function getMethodUrlPathArray(){
 
