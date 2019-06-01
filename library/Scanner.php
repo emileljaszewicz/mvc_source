@@ -26,7 +26,7 @@ class Scanner
         return $this->constSearchResults;
     }
     private function scan($directorypath){
-        $directories = scandir($directorypath);
+        $directories = (is_dir($directorypath)? scandir($directorypath): []);
 
         foreach ($directories as $directory){
 

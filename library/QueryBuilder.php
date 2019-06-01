@@ -18,7 +18,7 @@ class QueryBuilder
     }
 
     public function createQueryForTable($tableName){
-        $this->tableName = $tableName;
+        $this->tableName = strtolower($tableName);
         $this->query .= $this->tableName;
 
         return $this->query;

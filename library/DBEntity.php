@@ -2,10 +2,6 @@
 namespace library;
 
 
-
-
-use Entities\Panels;
-
 class DBEntity
 {
     private $rowId;
